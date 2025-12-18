@@ -4,15 +4,18 @@ import (
 	"encoding/json"
 	"net/http"
 	"archive/zip"
-	"strconv"
+	// "strconv"
 
 	"project_sem/internal/csvzip"
+	"project_sem/internal/db"
 )
 
-type PricesHandler struct{}
+type PricesHandler struct {
+	db *db.DB
+}
 
-func NewPricesHandler() *PricesHandler {
-	return &PricesHandler{}
+func NewPricesHandler(db *db.DB) *PricesHandler {
+	return &PricesHandler{db: db}
 }
 
 func (h *PricesHandler) HandlePrices(w http.ResponseWriter, r *http.Request) {
@@ -37,42 +40,22 @@ func (h *PricesHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	records, err := csvzip.ReadCSVFromMultipart(file)
+	if err != nil || len(records) <= 1 {
+		json.NewEncoder(w).Encode(zeroResponse())
+		return
+	}
+
+	stats, err := h.db.InsertPrices(r.Context(), records)
 	if err != nil {
 		json.NewEncoder(w).Encode(zeroResponse())
 		return
 	}
 
-	if len(records) <= 1 {
-		json.NewEncoder(w).Encode(zeroResponse())
-		return
-	}
-
-	totalItems := 0
-	totalPrice := 0
-	categories := map[string]struct{}{}
-
-	for _, row := range records[1:] {
-		if len(row) != 5 {
-			continue
-		}
-
-		price, err := strconv.Atoi(row[3])
-		if err != nil {
-			continue
-		}
-
-		totalItems++
-		totalPrice += price
-		categories[row[2]] = struct{}{}
-	}
-
-	resp := map[string]int{
-		"total_items":      totalItems,
-		"total_categories": len(categories),
-		"total_price":      totalPrice,
-	}
-
-	json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(map[string]int{
+		"total_items":      stats.TotalItems,
+		"total_categories": stats.TotalCategories,
+		"total_price":      stats.TotalPrice,
+	})
 }
 
 func zeroResponse() map[string]int {
