@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
+	"os"
 
 	_ "github.com/lib/pq"
 )
@@ -11,13 +11,21 @@ type DB struct {
 	conn *sql.DB
 }
 
-// Пока в явном виде в коде
 func New() (*DB, error) {
-	dsn := fmt.Sprintf(
-		"host=localhost port=5432 user=validator password=val1dat0r dbname=project-sem-1 sslmode=disable",
-	)
+	host := os.Getenv("POSTGRES_HOST")
+	port := os.Getenv("POSTGRES_PORT")
+	user := os.Getenv("POSTGRES_USER")
+	password := os.Getenv("POSTGRES_PASSWORD")
+	dbname := os.Getenv("POSTGRES_DB")
 
-	conn, err := sql.Open("postgres", dsn)
+	connStr := "host=" + host +
+		" port=" + port +
+		" user=" + user +
+		" password=" + password +
+		" dbname=" + dbname +
+		" sslmode=disable"
+
+	conn, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
 	}
