@@ -34,20 +34,25 @@ func (h *PricesHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
-		json.NewEncoder(w).Encode(zeroResponse())
+		http.Error(w, "FormFile error: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
 	records, err := csvzip.ReadCSVFromMultipart(file)
-	if err != nil || len(records) <= 1 {
-		json.NewEncoder(w).Encode(zeroResponse())
+	if err != nil {
+		http.Error(w, "CSV read error: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if len(records) <= 1 {
+		http.Error(w, "CSV contains no data rows", http.StatusBadRequest)
 		return
 	}
 
 	stats, err := h.db.InsertPrices(r.Context(), records)
 	if err != nil {
-		json.NewEncoder(w).Encode(zeroResponse())
+		http.Error(w, "DB insert error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -56,14 +61,6 @@ func (h *PricesHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 		"total_categories": stats.TotalCategories,
 		"total_price":      stats.TotalPrice,
 	})
-}
-
-func zeroResponse() map[string]int {
-	return map[string]int{
-		"total_items":      0,
-		"total_categories": 0,
-		"total_price":      0,
-	}
 }
 
 func (h *PricesHandler) handleGet(w http.ResponseWriter, r *http.Request) {

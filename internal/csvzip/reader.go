@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"mime/multipart"
+	"strings"
 )
 
 func ReadCSVFromMultipart(file multipart.File) ([][]string, error) {
@@ -24,17 +25,19 @@ func ReadCSVFromMultipart(file multipart.File) ([][]string, error) {
 	}
 
 	for _, f := range r.File {
-		if f.Name == "data.csv" {
-			rc, err := f.Open()
-			if err != nil {
-				return nil, err
-			}
-			defer rc.Close()
-
-			reader := csv.NewReader(rc)
-			return reader.ReadAll()
+	if strings.HasSuffix(f.Name, ".csv") {
+		rc, err := f.Open()
+		if err != nil {
+			return nil, err
 		}
-	}
+		defer rc.Close()
 
-	return nil, errors.New("data.csv not found in archive")
+		reader := csv.NewReader(rc)
+		reader.Comma = ','            // явно
+		reader.FieldsPerRecord = -1   // обязательно
+		return reader.ReadAll()
+	}
+}
+
+	return nil, errors.New("csv file not found in archive")
 }
