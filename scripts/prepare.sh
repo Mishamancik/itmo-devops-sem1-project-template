@@ -2,30 +2,24 @@
 
 set -e
 
-echo "Preparing project-sem-1-db container with PostgreSQL..."
+echo "Preparing database and dependencies..."
 
-if ! command -v docker &> /dev/null; then
-    echo "Docker not found on host"
-    exit 1
-fi
+# Подстраховка на случай запуска без переменных (не в GH Actions)
+: "${POSTGRES_HOST:=localhost}"
+: "${POSTGRES_PORT:=5432}"
+: "${POSTGRES_DB:=project-sem-1}"
+: "${POSTGRES_USER:=validator}"
+: "${POSTGRES_PASSWORD:=val1dat0r}"
 
-# Пока секреты явно в коде
-if ! docker ps -a --format '{{.Names}}' | grep -q '^project-sem-1-db$'; then
-    docker run --name project-sem-1-db \
-      -e POSTGRES_USER=validator \
-      -e POSTGRES_PASSWORD=val1dat0r \
-      -e POSTGRES_DB=project-sem-1 \
-      -p 5432:5432 \
-      -d postgres:15
-else
-    echo "Container project-sem-1-db already exists"
-    docker start project-sem-1-db
-fi
+echo "Waiting for PostgreSQL at $POSTGRES_HOST:$POSTGRES_PORT..."
+until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q' 2>/dev/null; do
+    echo "PostgreSQL is unavailable yet - retry in 2s"
+    sleep 2
+done
+echo "Successfully connetcted to PostgreSQL"
 
-sleep 5
-
-# Пока пароль тут тоже явно в коде
-PGPASSWORD=val1dat0r psql -h localhost -U validator -d project-sem-1 -c "
+echo "Creating table prices if not exists..."
+PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
 CREATE TABLE IF NOT EXISTS prices (
     id SERIAL PRIMARY KEY,
     create_date DATE NOT NULL,
@@ -35,4 +29,8 @@ CREATE TABLE IF NOT EXISTS prices (
 );
 "
 
-echo "Database is ready to work"
+echo "Installing Go dependencies..."
+go mod tidy
+go mod download
+
+echo "Environment is ready"
