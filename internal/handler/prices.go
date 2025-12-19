@@ -3,8 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"archive/zip"
-	// "strconv"
+	"strconv"
 
 	"project_sem/internal/csvzip"
 	"project_sem/internal/db"
@@ -67,23 +66,30 @@ func (h *PricesHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", `attachment; filename="data.zip"`)
 
-	zipWriter := zip.NewWriter(w)
-
-	fileWriter, err := zipWriter.Create("data.csv")
+	prices, err := h.db.GetPrices(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Пока только заголовки
-	_, err = fileWriter.Write([]byte("id,name,category,price,create_date\n"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	rows := make([][]string, 0, len(prices))
+	for _, p := range prices {
+		rows = append(rows, []string{
+			strconv.Itoa(p.ID),
+			p.Name,
+			p.Category,
+			strconv.FormatFloat(p.Price, 'f', -1, 64),
+			p.CreateDate,
+		})
 	}
 
-	if err := zipWriter.Close(); err != nil {
+	err = csvzip.WriteCSVToZip(
+		w,
+		"data.csv",
+		[]string{"id", "name", "category", "price", "create_date"},
+		rows,
+	)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 }

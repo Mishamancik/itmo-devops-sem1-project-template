@@ -5,6 +5,7 @@ import (
 	"strconv"
 )
 
+// ===================== Query for POST =====================
 type Stats struct {
 	TotalItems      int
 	TotalCategories int
@@ -62,4 +63,43 @@ func (db *DB) InsertPrices(ctx context.Context, records [][]string) (Stats, erro
 		TotalCategories: len(categorySet),
 		TotalPrice:      totalPrice,
 	}, nil
+}
+
+// ===================== Query for GET =====================
+type Price struct {
+	ID         int
+	Name       string
+	Category   string
+	Price      float64
+	CreateDate string
+}
+
+func (db *DB) GetPrices(ctx context.Context) ([]Price, error) {
+	rows, err := db.conn.QueryContext(ctx, `
+		SELECT id, name, category, price, create_date
+		FROM prices
+		ORDER BY id
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []Price
+
+	for rows.Next() {
+		var p Price
+		if err := rows.Scan(
+			&p.ID,
+			&p.Name,
+			&p.Category,
+			&p.Price,
+			&p.CreateDate,
+		); err != nil {
+			return nil, err
+		}
+		result = append(result, p)
+	}
+
+	return result, rows.Err()
 }

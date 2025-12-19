@@ -29,8 +29,12 @@ docker run --name project-sem-1-db \
   -p 5432:5432 \
   -d postgres:15
 
-Пример curl-запроса с mock-файлом:
+Пример Post-запроса:
   curl -X POST -F "file=@sample_data.zip" http://localhost:8080/api/v0/prices
+
+Пример Get-запроса:
+  curl -X GET http://localhost:8080/api/v0/prices -o result.zip
+
 
 ## Тестирование
 
