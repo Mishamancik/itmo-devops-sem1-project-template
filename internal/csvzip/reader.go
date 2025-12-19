@@ -33,8 +33,8 @@ func ReadCSVFromMultipart(file multipart.File) ([][]string, error) {
 		defer rc.Close()
 
 		reader := csv.NewReader(rc)
-		reader.Comma = ','            // явно
-		reader.FieldsPerRecord = -1   // обязательно
+		reader.Comma = ','
+		reader.FieldsPerRecord = -1
 		return reader.ReadAll()
 	}
 }

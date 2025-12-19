@@ -17,19 +17,16 @@ type Server struct {
 func New() *Server {
 	r := mux.NewRouter()
 
-	// Health endpoint (без проверки БД)
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	}).Methods(http.MethodGet)
 
-	// Подключение к БД
 	database, err := db.New()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Хендлеры API
 	h := handler.NewPricesHandler(database)
 
 	r.HandleFunc("/api/v0/prices", h.HandlePrices).

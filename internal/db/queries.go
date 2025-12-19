@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// ===================== Query for POST =====================
+// ====================================== POST ======================================
 type Stats struct {
 	TotalItems      int
 	TotalCategories int
@@ -66,7 +66,7 @@ func (db *DB) InsertPrices(ctx context.Context, records [][]string) (Stats, erro
 	}, nil
 }
 
-// ===================== Query for GET =====================
+// ====================================== GET ======================================
 type Price struct {
 	ID         int
 	Name       string
