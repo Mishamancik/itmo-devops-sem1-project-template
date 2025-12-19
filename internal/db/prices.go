@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"strconv"
+	"time"
 )
 
 // ===================== Query for POST =====================
@@ -71,7 +72,7 @@ type Price struct {
 	Name       string
 	Category   string
 	Price      float64
-	CreateDate string
+	CreateDate time.Time
 }
 
 func (db *DB) GetPrices(ctx context.Context) ([]Price, error) {

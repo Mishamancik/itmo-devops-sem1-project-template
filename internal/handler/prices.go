@@ -79,7 +79,7 @@ func (h *PricesHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 			p.Name,
 			p.Category,
 			strconv.FormatFloat(p.Price, 'f', -1, 64),
-			p.CreateDate,
+			p.CreateDate.Format("2006-01-02"),
 		})
 	}
 
@@ -93,3 +93,4 @@ func (h *PricesHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
+
