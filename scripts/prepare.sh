@@ -4,21 +4,23 @@ set -e
 
 echo "Preparing database and dependencies..."
 
-# Подстраховка на случай запуска без переменных (не в GH Actions)
-: "${POSTGRES_HOST:=localhost}"
-: "${POSTGRES_PORT:=5432}"
-: "${POSTGRES_DB:=project-sem-1}"
-: "${POSTGRES_USER:=validator}"
-: "${POSTGRES_PASSWORD:=val1dat0r}"
+# Экспорт для локального запуска (без переменных GH Actions)
+export POSTGRES_HOST="${POSTGRES_HOST:=localhost}"
+export POSTGRES_PORT="${POSTGRES_PORT:=5432}"
+export POSTGRES_DB="${POSTGRES_DB:=project-sem-1}"
+export POSTGRES_USER="${POSTGRES_USER:=validator}"
+export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:=val1dat0r}"
 
 echo "Waiting for PostgreSQL at $POSTGRES_HOST:$POSTGRES_PORT..."
+
 until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q' 2>/dev/null; do
     echo "PostgreSQL is unavailable yet - retry in 2s"
     sleep 2
 done
+
 echo "Successfully connetcted to PostgreSQL"
 
-echo "Creating table prices if not exists..."
+echo "Creating table 'prices' if not exists..."
 PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
 CREATE TABLE IF NOT EXISTS prices (
     id SERIAL PRIMARY KEY,
