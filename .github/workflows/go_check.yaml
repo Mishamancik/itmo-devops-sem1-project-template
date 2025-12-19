@@ -2,7 +2,7 @@ name: Go Test Pipeline
 
 on:
   push:
-    branches: [ main, master, mikhail ] # Пока проверяется mikhail тоже
+    branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
 
