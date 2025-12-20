@@ -2,7 +2,7 @@ name: Go Test Pipeline
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, hotfix ] # пока что для CI на этой ветке
   pull_request:
     branches: [ main, master ]
 
