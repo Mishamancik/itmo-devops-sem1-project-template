@@ -40,3 +40,7 @@ func New() (*DB, error) {
 func (db *DB) Conn() *sql.DB {
 	return db.conn
 }
+
+func (db *DB) Close() error {
+	return db.conn.Close()
+}

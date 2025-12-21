@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -14,18 +13,13 @@ type Server struct {
 	router *mux.Router
 }
 
-func New() *Server {
+func New(database *db.DB) (*Server, error) {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		_, _ = w.Write([]byte("ok"))
 	}).Methods(http.MethodGet)
-
-	database, err := db.New()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	h := handler.NewPricesHandler(database)
 
@@ -34,7 +28,7 @@ func New() *Server {
 
 	return &Server{
 		router: r,
-	}
+	}, nil
 }
 
 func (s *Server) Start(addr string) error {
