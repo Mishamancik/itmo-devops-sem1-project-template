@@ -28,7 +28,6 @@ func (h *PricesHandler) HandlePrices(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ==================================== POST ====================================
 func (h *PricesHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -63,7 +62,6 @@ func (h *PricesHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ==================================== GET ====================================
 func (h *PricesHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", `attachment; filename="data.zip"`)
